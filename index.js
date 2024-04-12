@@ -95,13 +95,15 @@ async function fetchDataAndCreatePage() {
           },
         },
       });
-      // requestCount++;
+      requestCount++;
       lastRequestTime = Date.now();
+      startingID = response.id;
+      console.log('nuova pagina creata ' + titleItem)
     } else {
       console.log('niente di nuovo')
     }
 
-    requestCount++;
+    // requestCount++;
 
     
     // setInterval(fetchDataAndCreatePage, requestInterval);
@@ -112,8 +114,6 @@ async function fetchDataAndCreatePage() {
         finally {
           // Imposta nuovamente l'intervallo di polling
           setTimeout(fetchDataAndCreatePage, requestInterval);
-          console.log('conteggio richieste ' + requestCount);
-          console.log('intervallo tra le richieste ' + requestInterval);
         }
       }
   // setInterval(fetchDataAndCreatePage, requestInterval);
