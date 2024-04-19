@@ -54,13 +54,13 @@ async function fetchData() {
       ],
       page_size: 1,
     });
-    console.log(response_query_fotografia);
-    console.log("hai letto l'ultimo task static creato")
+    // console.log(response_query_fotografia);
+    // console.log("hai letto l'ultimo task static creato")
 
     const response_query_task_id = response_query_fotografia.results[0].id;
     const response_page_query_fotografia = await notion.pages.retrieve({ page_id: response_query_task_id  });
-    console.log('arrivano i dettagli sull ultima pagina recuperata')
-    console.log(response_page_query_fotografia)
+    // console.log('arrivano i dettagli sull ultima pagina recuperata')
+    // console.log(response_page_query_fotografia)
     const name_duplicato = response_page_query_fotografia.properties.Name.title[0].plain_text;
 
 
@@ -141,20 +141,35 @@ async function fetchDataAndCreatePage() {
     const databaseId = 'b04115769c5c4984baec923b222745f1';
     const response = await notion.databases.query({
       database_id: databaseId,
+      /* filter: {
+        and: [
+          {
+          property: 'Tasks_static - ST',
+          relation: {
+            is_empty: true 
+            }
+          },
+        ]
+      }, */
       sorts: [
         {
           property: 'Last edited time',
           direction: 'descending',
         },
       ],
-      // page_size: 4,
+      page_size: 4,
     });
     const results = response.results;
     const id_sessione = results[0].id;
-    console.log('ora iniziano le sessioni')
+    // Estrarre il titolo della pagina Notion dall'URL
+    const url = results[0].url;
+    const pageTitle = url.split("/").pop().split("-").join(" ");
+    console.log("L'ultima sessione creata è: ", pageTitle);
+    
+    // console.log('ora iniziano le sessioni')
     // console.log(results);
-    console.log("l'id della sessione è: " + id_sessione)
-    console.log('sopra leggi le sessioni');
+    // console.log("l'id della sessione è: " + id_sessione)
+    //console.log('sopra leggi le sessioni');
     lastRequestTime = Date.now();
     requestCount++;
     console.log(requestCount);
@@ -166,15 +181,15 @@ async function fetchDataAndCreatePage() {
     let lastTimestamp = results[0].last_edited_time;
     let lastID = results[0].id;
     
-    if (lastTimestamp !== startingTimestamp && lastID !== startingID) {
+    /* if (lastTimestamp !== startingTimestamp && lastID !== startingID) {
       startingTimestamp = lastTimestamp;
-      const titleItem = results[0].properties.Name.title[0].plain_text;
-      console.log('funzione ok per item ' + titleItem )
+      
+      console.log('funzione ok per item ' + titleItem ) */
       
 
       // Funzione che recupera i task dal database Tasks_static (il database task di fotografia) che ha come link https://www.notion.so/paradygma/8d4a9f7186fa44e7bb94f376ecd0d5df?v=031aa9fdf7404a18944bf217e6c48096&pvs=4
     
-
+      const titleItem = results[0].properties.Name.title[0].plain_text;
       const databaseId_fotografia = '8d4a9f7186fa44e7bb94f376ecd0d5df';
         const response_fotografia = await notion.databases.query({
           database_id: databaseId_fotografia,
@@ -196,9 +211,9 @@ async function fetchDataAndCreatePage() {
           }
         });
       console.log('ok con la query di task static')
-      console.log(response_fotografia)
+      // console.log(response_fotografia)
       const results_fotografia_id = response_fotografia.results[0].id;
-      console.log(results_fotografia_id)
+      // console.log(results_fotografia_id)
       const response_page = await notion.pages.retrieve({ page_id: results_fotografia_id  });
       // const bu_id_propertyId = response_page.properties.bu_id.id;
       // const progetto_id_propertyId = response_page.properties.progetto_id.id;
@@ -233,7 +248,7 @@ async function fetchDataAndCreatePage() {
 
     // Creazione pagina in database Tasks_working con proprietà relative
 
-      const response = await notion.pages.create({
+      const response_working = await notion.pages.create({
         "parent": {
           "type": "database_id",
           "database_id": "209fc9d9eba4404985ef9aff531a8b3f"
@@ -268,14 +283,14 @@ async function fetchDataAndCreatePage() {
       });
       requestCount++;
       lastRequestTime = Date.now();
-      startingID = response.id;
+      startingID = response_working.id;
       console.log('nuova pagina creata ' + titleItem)
 
 
       
-    } else {
+  /* }  else {
       console.log('niente di nuovo')
-    }
+    } */
 
     // requestCount++;
 
@@ -293,6 +308,7 @@ async function fetchDataAndCreatePage() {
   // setInterval(fetchDataAndCreatePage, requestInterval);
 
       fetchDataAndCreatePage();
+  
 
     
 
