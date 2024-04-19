@@ -26,6 +26,9 @@ const { Client } = require('@notionhq/client');
 const notion = new Client({ auth: 'secret_T9oy68TJxm4F27FHeMeRaeJCGbpYzGateJ7cgJtEgQC' });
 let startingTimestamp = '';
 let startingID = '';
+let startingTimestamp_duplicate = '';
+let startingID_duplicate = '';
+// let startingEditing_duplicate = '';
 let requestCount = 0;
 const requestLimit = 3;
 // const requestInterval = 1000;  Tempo in millisecondi (1000ms = 1 secondo)
@@ -33,6 +36,90 @@ let lastRequestTime = Date.now();
 const maxRequestsPerSecond = 3;
 const requestInterval = 1000 / maxRequestsPerSecond; 
 
+
+// Duplicazione da Static_tasks a Working_tasks
+
+async function fetchData() {
+  try {
+    const databaseId_sorgente = '8d4a9f7186fa44e7bb94f376ecd0d5df';
+    const databaseId_destinazione = '209fc9d9eba4404985ef9aff531a8b3f';
+    
+    const response_query_fotografia = await notion.databases.query({
+      database_id: databaseId_sorgente,
+      sorts: [
+        {
+          property: 'Created time',
+          direction: 'descending',
+        },
+      ],
+      page_size: 1,
+    });
+    console.log(response_query_fotografia);
+    console.log("hai letto l'ultimo task static creato")
+
+    const response_query_task_id = response_query_fotografia.results[0].id;
+    const response_page_query_fotografia = await notion.pages.retrieve({ page_id: response_query_task_id  });
+    console.log('arrivano i dettagli sull ultima pagina recuperata')
+    console.log(response_page_query_fotografia)
+    const name_duplicato = response_page_query_fotografia.properties.Name.title[0].plain_text;
+
+
+    let lastTimestamp_duplicate = response_page_query_fotografia.created_time;
+    let lastID_duplicate = response_query_task_id;
+    let lastEditing_duplicate = response_page_query_fotografia.last_edited_time;
+
+    if (lastTimestamp_duplicate !== startingTimestamp_duplicate && lastID_duplicate !== startingID_duplicate ) {
+      startingTimestamp_duplicate = lastTimestamp_duplicate;
+      // const titleItem = results[0].properties.Name.title[0].plain_text;
+      // console.log('funzione ok per item ' + titleItem )
+
+    const response_creazione_task_memory = await notion.pages.create({
+      "parent": {
+        "type": "database_id",
+        "database_id": "209fc9d9eba4404985ef9aff531a8b3f"
+      },
+      "properties": {
+        "Name": {
+          "title": [
+            {
+              "text": {
+                "content": name_duplicato
+              }
+            }
+          ]
+        },
+        "Tasks_static - ST": {
+          type: 'relation',
+          relation: [
+            {
+              id: response_query_task_id
+            }
+          ],
+        },
+      },
+    });
+    } else {
+      console.log('non ci sono nuovi task da duplicare')
+    }
+  } catch (error) {
+    console.error('Errore durante la richiesta:', error);
+  }
+  finally {
+    // Imposta nuovamente l'intervallo di polling
+    setTimeout(fetchData, 25000);
+  }
+}
+
+fetchData(); 
+
+
+
+
+
+
+
+
+// Funzione che gestisce la creazione della pagina nel database Task_working
 
 async function fetchDataAndCreatePage() {
   try {
@@ -60,9 +147,14 @@ async function fetchDataAndCreatePage() {
           direction: 'descending',
         },
       ],
-      page_size: 4,
+      // page_size: 4,
     });
     const results = response.results;
+    const id_sessione = results[0].id;
+    console.log('ora iniziano le sessioni')
+    // console.log(results);
+    console.log("l'id della sessione è: " + id_sessione)
+    console.log('sopra leggi le sessioni');
     lastRequestTime = Date.now();
     requestCount++;
     console.log(requestCount);
@@ -78,6 +170,69 @@ async function fetchDataAndCreatePage() {
       startingTimestamp = lastTimestamp;
       const titleItem = results[0].properties.Name.title[0].plain_text;
       console.log('funzione ok per item ' + titleItem )
+      
+
+      // Funzione che recupera i task dal database Tasks_static (il database task di fotografia) che ha come link https://www.notion.so/paradygma/8d4a9f7186fa44e7bb94f376ecd0d5df?v=031aa9fdf7404a18944bf217e6c48096&pvs=4
+    
+
+      const databaseId_fotografia = '8d4a9f7186fa44e7bb94f376ecd0d5df';
+        const response_fotografia = await notion.databases.query({
+          database_id: databaseId_fotografia,
+          filter: {
+            and: [
+              {
+                property: 'Name',
+                rich_text: {
+                contains: titleItem
+                }
+              },
+              {
+              property: 'Working_tasks',
+              relation: {
+                is_empty: true 
+                }
+              },
+            ]
+          }
+        });
+      console.log('ok con la query di task static')
+      console.log(response_fotografia)
+      const results_fotografia_id = response_fotografia.results[0].id;
+      console.log(results_fotografia_id)
+      const response_page = await notion.pages.retrieve({ page_id: results_fotografia_id  });
+      // const bu_id_propertyId = response_page.properties.bu_id.id;
+      // const progetto_id_propertyId = response_page.properties.progetto_id.id;
+      // const response_page_bu_id = await notion.pages.properties.retrieve({ page_id: results_fotografia_id, property_id: bu_id_propertyId });
+      // const response_page_progetto_id = await notion.pages.properties.retrieve({ page_id: results_fotografia_id, property_id: progetto_id_propertyId  });
+      // const true_progetto_id = response_page_progetto_id.formula.string;
+      // const true_bu_id = response_page_bu_id.formula.string;
+      
+      // console.log(response_page)
+      
+      // console.log(results_fotografia_id)
+      // console.log(response_page_progetto_id )
+      // console.log('progetto_id: ' + true_progetto_id + ' bu_id: ' + true_bu_id)
+
+
+    // Aggiornamento pagina static con relation a Sessioni
+      const aggiornamento_static = await notion.pages.update({
+        page_id: results_fotografia_id,
+        properties: {
+          "Sessioni - ST": {
+          type: 'relation',
+          relation: [
+            {
+              id: id_sessione
+            }
+          ],
+        },
+      }
+      });
+      console.log('pagina Sessione aggiornata')
+
+
+    // Creazione pagina in database Tasks_working con proprietà relative
+
       const response = await notion.pages.create({
         "parent": {
           "type": "database_id",
@@ -93,12 +248,31 @@ async function fetchDataAndCreatePage() {
               }
             ]
           },
+          "Tasks_static - ST": {
+            type: 'relation',
+            relation: [
+              {
+                id: results_fotografia_id
+              }
+            ],
+          },
+          /* "BUs": {
+            type: 'relation',
+            relation: [
+              {
+                id: true_bu_id
+              }
+            ],
+          }, */
         },
       });
       requestCount++;
       lastRequestTime = Date.now();
       startingID = response.id;
       console.log('nuova pagina creata ' + titleItem)
+
+
+      
     } else {
       console.log('niente di nuovo')
     }
