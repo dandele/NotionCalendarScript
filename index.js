@@ -38,22 +38,6 @@ const requestInterval = 1000 / maxRequestsPerSecond;
 
 
 
-// Funzione per inviare un ping al server ogni tot minuti
-async function sendPing() {
-    try {
-        // Esegui una richiesta HTTP al server (ad esempio una richiesta GET a una rotta dedicata al ping)
-        await fetch('https://il_tuo_server.com/ping');
-        console.log('Ping inviato al server.');
-    } catch (error) {
-        console.error('Errore durante l\'invio del ping:', error);
-    }
-}
-
-
-
-
-
-
 
 // Funzione che gestisce la creazione della pagina nel database Task_working
 
@@ -237,9 +221,6 @@ async function fetchDataAndCreatePage() {
         console.error("Errore durante la query del database:", error.message);
       }
         finally {
-          
-          // Dopo aver completato la tua logica principale, invia un ping al server per mantenere attiva l'istanza
-          await sendPing();
           
           // Imposta nuovamente l'intervallo di polling
           setTimeout(fetchDataAndCreatePage, requestInterval);
