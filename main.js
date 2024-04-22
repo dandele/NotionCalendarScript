@@ -37,17 +37,81 @@ const maxRequestsPerSecond = 3;
 const requestInterval = 1000 / maxRequestsPerSecond; 
 
 
+// Duplicazione da Static_tasks a Working_tasks
 
-// Funzione per inviare un ping al server ogni tot minuti
-async function sendPing() {
-    try {
-        // Esegui una richiesta HTTP al server (ad esempio una richiesta GET a una rotta dedicata al ping)
-        await fetch('https://il_tuo_server.com/ping');
-        console.log('Ping inviato al server.');
-    } catch (error) {
-        console.error('Errore durante l\'invio del ping:', error);
+async function fetchData() {
+  try {
+    const databaseId_sorgente = '8d4a9f7186fa44e7bb94f376ecd0d5df';
+    const databaseId_destinazione = '209fc9d9eba4404985ef9aff531a8b3f';
+    
+    const response_query_fotografia = await notion.databases.query({
+      database_id: databaseId_sorgente,
+      sorts: [
+        {
+          property: 'Created time',
+          direction: 'descending',
+        },
+      ],
+      page_size: 1,
+    });
+    // console.log(response_query_fotografia);
+    // console.log("hai letto l'ultimo task static creato")
+
+    const response_query_task_id = response_query_fotografia.results[0].id;
+    const response_page_query_fotografia = await notion.pages.retrieve({ page_id: response_query_task_id  });
+    // console.log('arrivano i dettagli sull ultima pagina recuperata')
+    // console.log(response_page_query_fotografia)
+    const name_duplicato = response_page_query_fotografia.properties.Name.title[0].plain_text;
+
+
+    let lastTimestamp_duplicate = response_page_query_fotografia.created_time;
+    let lastID_duplicate = response_query_task_id;
+    let lastEditing_duplicate = response_page_query_fotografia.last_edited_time;
+
+    if (lastTimestamp_duplicate !== startingTimestamp_duplicate && lastID_duplicate !== startingID_duplicate ) {
+      startingTimestamp_duplicate = lastTimestamp_duplicate;
+      // const titleItem = results[0].properties.Name.title[0].plain_text;
+      // console.log('funzione ok per item ' + titleItem )
+
+    const response_creazione_task_memory = await notion.pages.create({
+      "parent": {
+        "type": "database_id",
+        "database_id": "209fc9d9eba4404985ef9aff531a8b3f"
+      },
+      "properties": {
+        "Name": {
+          "title": [
+            {
+              "text": {
+                "content": name_duplicato
+              }
+            }
+          ]
+        },
+        "Tasks_static - ST": {
+          type: 'relation',
+          relation: [
+            {
+              id: response_query_task_id
+            }
+          ],
+        },
+      },
+    });
+    } else {
+      console.log('non ci sono nuovi task da duplicare')
     }
+  } catch (error) {
+    console.error('Errore durante la richiesta:', error);
+  }
+  finally {
+    // Imposta nuovamente l'intervallo di polling
+    setTimeout(fetchData, 25000);
+  }
 }
+
+fetchData(); 
+
 
 
 
@@ -237,10 +301,6 @@ async function fetchDataAndCreatePage() {
         console.error("Errore durante la query del database:", error.message);
       }
         finally {
-          
-          // Dopo aver completato la tua logica principale, invia un ping al server per mantenere attiva l'istanza
-          await sendPing();
-          
           // Imposta nuovamente l'intervallo di polling
           setTimeout(fetchDataAndCreatePage, requestInterval);
         }
