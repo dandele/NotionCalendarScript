@@ -16,14 +16,31 @@ const DESTINATION_DATABASE_ID = '209fc9d9eba4404985ef9aff531a8b3f';
 
 
 
+
+// Link database Working Storeis https://www.notion.so/dd42c95a9d9c430f9d51ca9429e5b720?v=a471efd18c0340afb660afece29fcd73&pvs=4
+
+// Link database Sessioni Storeis
+https://www.notion.so/dbd28bc279b54dccb678d94f7bb2a772?v=7653dbaa79ff43afb4c35cc582dd4b9d&pvs=4
+
+
+// Link database Fotografia Storeis
+https://www.notion.so/6a988c2d68364b759183280263113114?v=724e4f6e3ba34e3395fad1118f38ed61&pvs=4
+
+
+
+
+
+
 // link db di test creazione https://www.notion.so/paradygma/294093d1943041e3bceb9acfc7f293d5?v=0c04764aae8b4f5eb1583104ee5aa849&pvs=4
 
 */
+  
+
 
 
 const fetch = require('axios');
 const { Client } = require('@notionhq/client');
-const notion = new Client({ auth: 'secret_T9oy68TJxm4F27FHeMeRaeJCGbpYzGateJ7cgJtEgQC' });
+const notion = new Client({ auth: 'secret_hORSgU4pMczE4lI6EwmJgaXo3YEldf5EWzi2HFm3vG1' });
 let startingTimestamp = '';
 let startingID = '';
 let startingTimestamp_duplicate = '';
@@ -43,7 +60,7 @@ const requestInterval = 1000 / maxRequestsPerSecond;
 // Controlla se esiste già una pagina con lo stesso titolo nel database Task_working
 async function pageExists(titleItem, results_fotografia_id) {
     const response_duplicate = await notion.databases.query({
-        database_id: '209fc9d9eba4404985ef9aff531a8b3f',
+        database_id: 'dd42c95a9d9c430f9d51ca9429e5b720',
         filter: {
           and: [
             {
@@ -81,13 +98,10 @@ async function fetchDataAndCreatePage() {
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
 
-/*    if (requestCount >= requestLimit) {
-      console.warn('Hai raggiunto il limite massimo di richieste. Attendi prima di eseguirne altre.');
-      return; // Esce dalla funzione senza eseguire ulteriori richieste
-    }
-*/
+
+    // Ricerca nel database Sessioni
     
-    const databaseId = 'b04115769c5c4984baec923b222745f1';
+    const databaseId = 'dbd28bc279b54dccb678d94f7bb2a772';
     const response = await notion.databases.query({
       database_id: databaseId,
        filter: {
@@ -139,7 +153,7 @@ async function fetchDataAndCreatePage() {
       // Funzione che recupera i task dal database Tasks_static (il database task di fotografia) che ha come link https://www.notion.so/paradygma/8d4a9f7186fa44e7bb94f376ecd0d5df?v=031aa9fdf7404a18944bf217e6c48096&pvs=4
     
       const titleItem = results[0].properties.Name.title[0].plain_text;
-      const databaseId_fotografia = '8d4a9f7186fa44e7bb94f376ecd0d5df';
+      const databaseId_fotografia = '6a988c2d68364b759183280263113114';
         const response_fotografia = await notion.databases.query({
           database_id: databaseId_fotografia,
           filter: {
@@ -204,7 +218,7 @@ async function fetchDataAndCreatePage() {
     const response_working = await notion.pages.create({
         "parent": {
           "type": "database_id",
-          "database_id": "209fc9d9eba4404985ef9aff531a8b3f"
+          "database_id": "dd42c95a9d9c430f9d51ca9429e5b720"
         },
         "properties": {
           "Name": {
@@ -265,9 +279,7 @@ async function fetchDataAndCreatePage() {
   // setInterval(fetchDataAndCreatePage, requestInterval);
 
       fetchDataAndCreatePage();
-  
 
-    
 
     
       /* for (const result of results) {
