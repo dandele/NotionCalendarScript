@@ -50,7 +50,7 @@ let requestCount = 0;
 const requestLimit = 3;
 // const requestInterval = 1000;  Tempo in millisecondi (1000ms = 1 secondo)
 let lastRequestTime = Date.now();
-const maxRequestsPerSecond = 3;
+const maxRequestsPerSecond = 2;
 const requestInterval = 1000 / maxRequestsPerSecond; 
 
 
